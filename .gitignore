@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Django
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.mo
+
+# Environment
+.env
+.env.*
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# Misc
+*.swp
+*.swo
+.idea/
+*.bak
+*.tmp
+
+# Test
+coverage/
+htmlcov/
+
+# Pipenv
+Pipfile.lock
+
+# Migrations
+**/migrations/*.pyc
+**/migrations/*.pyo
+
