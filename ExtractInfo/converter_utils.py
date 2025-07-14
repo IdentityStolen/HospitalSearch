@@ -25,14 +25,18 @@ class IntConverter(Converter):
         self.lower_bound = -(2**self.base)
 
     def convert(self) -> Optional[int]:
-        if self.value is None:
-            return None
-
         try:
-            int_value = int(self.value.strip())
+            if isinstance(self.value, str):
+                int_value = int(StringConverter(self.value).convert())
+                self.value = int_value
+
+            if self.value is None or self.value == "":
+                return None
 
             return (
-                int_value if self.lower_bound <= int_value <= self.upper_bound else None
+                self.value
+                if self.lower_bound <= self.value <= self.upper_bound
+                else None
             )
         except ValueError:
             raise ValueError(f"Cannot convert '{self.value}' to int.")
@@ -66,12 +70,17 @@ class PhoneConverter(Converter):
 
         str_val = StringConverter(self.value).convert()
         cleaned_value = "".join(filter(str.isdigit, str_val))
+
+        if not cleaned_value:
+            return None
+
         if len(cleaned_value) == 10:
             return f"+1 {cleaned_value[:3]}-{cleaned_value[3:6]}-{cleaned_value[6:]}"
-        elif len(cleaned_value) > 10:
+
+        if len(cleaned_value) > 10:
             return f"+{cleaned_value[:len(cleaned_value)-10]} {cleaned_value[-10:-7]}-{cleaned_value[-7:-4]}-{cleaned_value[-4:]}"
-        else:
-            raise ValueError(f"Invalid phone number format: '{self.value}'")
+
+        raise ValueError(f"Invalid phone number format: '{self.value}'")
 
 
 class EmailConverter(Converter):
@@ -113,3 +122,34 @@ class WebsiteConverter(Converter):
             return cleaned_value
         else:
             raise ValueError(f"Invalid website format: '{self.value}'")
+
+
+class TimezoneConverter(Converter):
+
+    ALLOWED_TIMEZONES = {"UTC", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", "PDT"}
+
+    def convert(self) -> Optional[str]:
+        if self.value is None:
+            return None
+
+        cleaned_value = StringConverter(self.value).convert()
+
+        if cleaned_value in self.ALLOWED_TIMEZONES:
+            return cleaned_value
+        else:
+            raise ValueError(f"Invalid timezone format: '{self.value}'")
+
+
+class NotNullConverter(Converter):
+    def convert(self) -> Any:
+        if isinstance(self.value, Converter):
+            ret = self.value.convert()
+            if ret is None:
+                raise ValueError(f"Value cannot be None: {self.value}")
+
+            return ret
+
+        if self.value is None:
+            raise ValueError(f"Value cannot be None: {self.value}")
+
+        return self.value

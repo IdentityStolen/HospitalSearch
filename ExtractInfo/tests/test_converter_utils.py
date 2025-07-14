@@ -1,11 +1,11 @@
 import unittest
 from ExtractInfo.converter_utils import (
     StringConverter,
-    IntConverter,
-    Int64Converter,
     FloatConverter,
     WebsiteConverter,
-    EmailConverter, PhoneConverter,
+    EmailConverter,
+    PhoneConverter,
+    IntConverter,
 )
 
 
@@ -37,6 +37,9 @@ class TestStringConverter(unittest.TestCase):
 
         converter = PhoneConverter("+ 11  (123) 456-7890  ")
         self.assertEqual(converter.convert(), "+11 123-456-7890")
+
+        converter = PhoneConverter("(480) 963-4561")
+        self.assertEqual(converter.convert(), "+1 480-963-4561")
 
     def test_email_converter(self):
         converter = EmailConverter("hdf@fjgjhg.")
@@ -70,6 +73,27 @@ class TestStringConverter(unittest.TestCase):
         with self.assertRaises(ValueError):
             converter = FloatConverter("invalid")
             converter.convert()
+
+    def test_int_converter(self):
+        converter = IntConverter("  123  ")
+        self.assertEqual(converter.convert(), 123)
+
+        converter = IntConverter("   -456   ")
+        self.assertEqual(converter.convert(), -456)
+
+        converter = IntConverter(123)
+        self.assertEqual(converter.convert(), 123)
+
+        converter = IntConverter(-456)
+        self.assertEqual(converter.convert(), -456)
+
+        converter = IntConverter("0")
+        self.assertEqual(converter.convert(), 0)
+
+        with self.assertRaises(ValueError):
+            converter = IntConverter("invalid")
+            converter.convert()
+
 
 if __name__ == "__main__":
     unittest.main()
