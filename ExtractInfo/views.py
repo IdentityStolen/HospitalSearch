@@ -6,8 +6,6 @@ import requests
 import os
 from dotenv import load_dotenv
 import json
-from kafka import KafkaProducer, KafkaConsumer
-from sqlparse.utils import consume
 
 from ExtractInfo.converter_utils import (
     StringConverter,
@@ -21,14 +19,8 @@ from ExtractInfo.converter_utils import (
 load_dotenv()
 
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
-
 # Use of a file mimics the streaming incremental data
 FILE_PATH = "./hospitals.json"
-KAFKA_BROKER = os.environ.get("KAFKA_BROKER", "kafka:9092")
-KAFKA_TOPIC = os.environ.get("KAFKA_TOPIC", "hospitals")
 
 
 @csrf_exempt
@@ -37,6 +29,8 @@ def extract_data(request):
         return JsonResponse({"error": "Only GET method allowed"}, status=405)
     city = request.GET.get("city")
     state = request.GET.get("state")
+    # if not city or not state:
+    #     return JsonResponse({'error': 'city and state are required'}, status=400)
     if len(state) != 2 or not state.isalpha():
         return JsonResponse({"error": "state must be exactly 2 letters"}, status=400)
     api_key = os.environ.get("API_NINJAS_KEY")
@@ -49,17 +43,12 @@ def extract_data(request):
         resp.raise_for_status()
         hospitals = resp.json()
 
-        # Send each hospital record to Kafka
-        producer = KafkaProducer(
-            bootstrap_servers=KAFKA_BROKER,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-            request_timeout_ms=60000,  # 1 minute timeout
-            api_version_auto_timeout_ms=60000  # 1 minute for API version negotiation
-        )
-        for hospital in hospitals:
-            producer.send(KAFKA_TOPIC, hospital)
-        producer.flush()
-        producer.close()
+        if os.path.exists(FILE_PATH):
+            os.remove(FILE_PATH)
+
+        # Write hospitals to a local file
+        with open(FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(hospitals, f, ensure_ascii=False, indent=2)
 
         return JsonResponse(hospitals, safe=False)
     except requests.RequestException as e:
@@ -120,28 +109,16 @@ def trasform_data_helper(hospital):
 @csrf_exempt
 def transform_data(request):
     responses = []
-    consumer = None
-    logging.info("Hi There, my Shree log!")
+
     try:
-        consumer = KafkaConsumer(
-            KAFKA_TOPIC,
-            bootstrap_servers=KAFKA_BROKER,
-            auto_offset_reset='earliest',
-            enable_auto_commit=True,
-            group_id='extractinfo-transform',
-            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-            consumer_timeout_ms=2000
-            # session_timeout_ms=300000,  # 10 seconds session timeout
-            # max_poll_interval_ms=300000  # 5 minutes max poll interval
-        )
-        logging.log(logging.INFO, f"consumer: {consumer}")
-        for message in consumer:
-            hospital = message.value
-            logging.log(logging.INFO, f"hospital is: {hospital}")
-            responses.append(trasform_data_helper(hospital))
+        if os.path.exists(FILE_PATH):
+            with open(FILE_PATH, "r", encoding="utf-8") as f:
+                hospitals = json.load(f)
+                for hospital in hospitals:
+                    responses.append(trasform_data_helper(hospital))
     except Exception as e:
-        logging.error(f"Fucked up error: {e}")
+        logging.error(f"Error occurred: {e}")
     finally:
-        if consumer:
-            consumer.close()
+        if os.path.exists(FILE_PATH):
+            os.remove(FILE_PATH)
         return JsonResponse(responses, safe=False)
