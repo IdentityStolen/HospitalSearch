@@ -21,6 +21,7 @@ Please refer below architectural diagram.
 ## Prerequisites
 
 - Create a `.env` file in the project root and add your API key:
+  Ingestion endpoint uses [this](https://api-ninjas.com/api/hospitals) endpoint to get the data from.
   ```env
   API_NINJAS_KEY=your_api_key_here
   ```
