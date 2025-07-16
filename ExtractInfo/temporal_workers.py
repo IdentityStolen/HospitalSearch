@@ -14,7 +14,7 @@ async def main():
     logging.basicConfig(level=logging.INFO)
 
     # Start client
-    client = await Client.connect("localhost:7233", namespace="Conversion")
+    client = await Client.connect("host.docker.internal:7233", namespace="Conversion")
 
     # Run a worker for the workflow
     with ThreadPoolExecutor() as executor:

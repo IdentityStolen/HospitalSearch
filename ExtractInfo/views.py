@@ -51,7 +51,7 @@ def extract_data(request):
 
 
 async def process_hospitals(hospitals):
-    client = await Client.connect("localhost:7233", namespace="Conversion")
+    client = await Client.connect("host.docker.internal:7233", namespace="Conversion")
 
     results = []
     for i, hospital in enumerate(hospitals):
