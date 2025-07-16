@@ -88,4 +88,3 @@ Please refer below architectural diagram.
 
 ## Notes
 - Please make sure your web and Temporal workers are healthy before running workflows.
-
