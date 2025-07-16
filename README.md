@@ -23,7 +23,7 @@ Please refer below architectural diagram.
 - Create a `.env` file in the project root and add your API key:
   Ingestion endpoint uses [this](https://api-ninjas.com/api/hospitals) endpoint to get the data from.
   ```env
-  API_NINJAS_KEY=your_api_key_here
+  API_NINJAS_KEY='your_api_key_here'
   ```
 
 - Create a [local setup for docker](https://docs.docker.com/compose/install/) so to successfully run docker commands.
