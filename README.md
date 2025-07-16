@@ -1,6 +1,6 @@
 # HospitalSearch
 
-This repo is proof of concept for how temporal can be leveraged in ETL environment.
+This repo is proof of concept for how Temporal can be leveraged in ETL environment.
 
 Let's say endpoint http://127.0.0.1:8000/api/extract_data represents upstream endpoint responsible for fetching 
 hospital data from various websites. (represents E in ETL)
@@ -11,7 +11,8 @@ into normalized form across the board. (represents T in ETL)
 I worked previously in an environment where upstream service brought in data from various heterogeneous websites.
 I was part of conversion team where our downstream needed all versions of incremental data (converted = normalized). 
 If this conversion logic happens to be wrong, we had to find all errors & re-run same updates. With Temporal, error 
-tracking & task of making sure all versions get converted correctly, becomes easier.
+tracking & task of making sure all versions get converted correctly, becomes easier. Also with Temporal, its easy to 
+guard partial updates to downstream if upstream data is missing.
 
 Please refer below architectural diagram.
 
@@ -42,7 +43,7 @@ Please refer below architectural diagram.
    - Open [http://localhost:8000](http://localhost:8000) in your browser.
 
 3. Create Temporal server locally:
-   - Using [temporal cli](https://docs.temporal.io/cli), create local temporal server with Conversion namespace:
+   - Using [temporal cli](https://docs.temporal.io/cli), create local Temporal server with Conversion namespace:
 
      ```bash
      temporal namespace register --namespace Conversion
