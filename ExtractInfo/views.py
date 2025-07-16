@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from django.http import JsonResponse
@@ -7,14 +8,8 @@ import os
 from dotenv import load_dotenv
 import json
 
-from ExtractInfo.converter_utils import (
-    StringConverter,
-    PhoneConverter,
-    TimezoneConverter,
-    FloatConverter,
-    IntConverter,
-    NotNullConverter,
-)
+from temporalio.client import Client
+import uuid
 
 load_dotenv()
 
@@ -55,55 +50,21 @@ def extract_data(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-def trasform_data_helper(hospital):
-    cleaned_data = {}
+async def process_hospitals(hospitals):
+    client = await Client.connect("localhost:7233", namespace="Conversion")
 
-    name = hospital.get("name", "")
-    cleaned_data["name"] = StringConverter(name).convert()
+    results = []
+    for i, hospital in enumerate(hospitals):
+        result = await client.execute_workflow(
+            "ConversionWorkflow",
+            hospital,
+            id=str(uuid.uuid4()),
+            task_queue="conversion-queue",
+        )
 
-    care_type = hospital.get("care_type", "")
-    cleaned_data["care_type"] = StringConverter(care_type).convert()
+        results.append(result)
 
-    address = hospital.get("address", "")
-    cleaned_data["address"] = StringConverter(address).convert()
-
-    phone = hospital.get("phone_number", "")
-    cleaned_data["phone"] = PhoneConverter(phone).convert()
-
-    city = hospital.get("city", "")
-    cleaned_data["city"] = StringConverter(city).convert()
-
-    state = hospital.get("state", "")
-    cleaned_data["state"] = StringConverter(state).convert()
-
-    zipcode = hospital.get("zipcode", "")
-    cleaned_data["zipcode"] = StringConverter(zipcode).convert()
-
-    county = hospital.get("county", "")
-    cleaned_data["county"] = StringConverter(county).convert()
-
-    location_area_code = hospital.get("location_area_code", "")
-    cleaned_data["location_area_code"] = StringConverter(location_area_code).convert()
-
-    fips_code = hospital.get("fips_code", "")
-    cleaned_data["fips_code"] = StringConverter(fips_code).convert()
-
-    timezone = hospital.get("timezone", "")
-    cleaned_data["timezone"] = TimezoneConverter(timezone).convert()
-
-    latitude = hospital.get("latitude", "")
-    cleaned_data["latitude"] = FloatConverter(latitude).convert()
-
-    longitude = hospital.get("longitude", "")
-    cleaned_data["longitude"] = FloatConverter(longitude).convert()
-
-    ownership = hospital.get("ownership", "")
-    cleaned_data["ownership"] = StringConverter(ownership).convert()
-
-    bedcount = hospital.get("bedcount", "")
-    cleaned_data["bedcount"] = NotNullConverter(IntConverter(bedcount)).convert()
-
-    return cleaned_data
+    return results
 
 
 @csrf_exempt
@@ -114,8 +75,7 @@ def transform_data(request):
         if os.path.exists(FILE_PATH):
             with open(FILE_PATH, "r", encoding="utf-8") as f:
                 hospitals = json.load(f)
-                for hospital in hospitals:
-                    responses.append(trasform_data_helper(hospital))
+                responses = asyncio.run(process_hospitals(hospitals))
     except Exception as e:
         logging.error(f"Error occurred: {e}")
     finally:
