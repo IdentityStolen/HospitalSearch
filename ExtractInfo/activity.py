@@ -4,7 +4,8 @@ from ExtractInfo.converter_utils import (
     TimezoneConverter,
     FloatConverter,
     IntConverter,
-    NotNullConverter, WebsiteConverter,
+    NotNullConverter,
+    WebsiteConverter,
 )
 from typing import Dict
 from temporalio import activity

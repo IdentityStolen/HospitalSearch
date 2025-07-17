@@ -52,18 +52,33 @@ def extract_data(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+output = []
+
+
+async def process_hospital(client, hospital):
+    result = await client.execute_workflow(
+        "ConversionWorkflow",
+        hospital,
+        id=str(uuid.uuid4()),
+        task_queue="conversion-queue",
+    )
+
+    output.append(result)
+    return result
+
+
 async def process_hospitals(hospitals):
     client = await Client.connect("host.docker.internal:7233", namespace="Conversion")
 
     results = []
-    for i, hospital in enumerate(hospitals):
-        result = await client.execute_workflow(
-            "ConversionWorkflow",
-            hospital,
-            id=str(uuid.uuid4()),
-            task_queue="conversion-queue",
-        )
 
+    tasks = [
+        asyncio.create_task(process_hospital(client, hospital))
+        for hospital in hospitals
+    ]
+
+    for task in asyncio.as_completed(tasks):
+        result = await task
         results.append(result)
 
     return results
@@ -86,4 +101,6 @@ def transform_data(request):
     finally:
         if os.path.exists(FILE_PATH):
             os.remove(FILE_PATH)
+
+        responses = responses if len(responses) == len(output) else output
         return JsonResponse(responses, safe=False)

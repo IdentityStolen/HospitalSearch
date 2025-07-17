@@ -67,23 +67,23 @@ Please refer below architectural diagram.
 
 1. `http://127.0.0.1:8000/api/extract_data/?city=chandler&state=az`
 
-![img_1.png](img_1.png)
+![img_7.png](img_7.png)
 
 2. `http://127.0.0.1:8000/api/transform_data`
 
-![img_2.png](img_2.png)
+![img_8.png](img_8.png)
 
 3. [Temporal web ui](http://localhost:8233/namespaces/Conversion/workflows)
 
-![img_4.png](img_4.png)
+![img_9.png](img_9.png)
 
 4. When workflow succeeds
 
-![img_5.png](img_5.png)
+![img_11.png](img_11.png)
 
 5. When workflow fails / stuck
 
-![img_6.png](img_6.png)
+![img_12.png](img_12.png)
 
 
 ## Notes
