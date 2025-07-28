@@ -4,7 +4,8 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 from typing import Dict
 
-from ExtractInfo.activity import transform_data_helper
+with workflow.unsafe.imports_passed_through():
+    from ExtractInfo.activity import transform_data_helper
 
 
 @workflow.defn
