@@ -11,6 +11,8 @@ import json
 from temporalio.client import Client
 import uuid
 
+from ExtractInfo.converter_utils import TASK_QUEUE
+
 load_dotenv()
 
 
@@ -60,7 +62,7 @@ async def process_hospital(client, hospital):
         "ConversionWorkflow",
         hospital,
         id=str(uuid.uuid4()),
-        task_queue="conversion-queue",
+        task_queue=TASK_QUEUE,
     )
 
     output.append(result)

@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 from typing import Optional, Any
 
 
+TASK_QUEUE = "conversion-queue"
+
+
 class Converter(ABC):
     def __init__(self, value: Any = None):
         self.value = value
